@@ -227,6 +227,7 @@ app.get('/characters/:prefectureId', async (c) => {
 const port = parseInt(process.env.PORT || '3000');
 
 console.log(`Server is running on port ${port}`);
+console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 
 serve({
   fetch: app.fetch,
