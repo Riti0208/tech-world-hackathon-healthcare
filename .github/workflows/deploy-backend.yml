@@ -37,7 +37,36 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Trigger AppRun deployment
+        run: |
+          curl -X PUT \
+            "https://secure.sakura.ad.jp/cloud/zone/is1a/api/cloud/1.1/apprun/${{ secrets.SAKURA_APPRUN_ID }}/deploy" \
+            -u "${{ secrets.SAKURA_API_TOKEN }}:${{ secrets.SAKURA_API_SECRET }}" \
+            -H "Content-Type: application/json"
+
+      - name: Wait for deployment
+        run: |
+          echo "Waiting for AppRun to deploy new image..."
+          sleep 30
+
+          # Check health status
+          for i in {1..10}; do
+            STATUS=$(curl -s "https://secure.sakura.ad.jp/cloud/zone/is1a/api/cloud/1.1/apprun/${{ secrets.SAKURA_APPRUN_ID }}" \
+              -u "${{ secrets.SAKURA_API_TOKEN }}:${{ secrets.SAKURA_API_SECRET }}" | jq -r '.AppRun.Status')
+            echo "Deployment status: $STATUS"
+
+            if [ "$STATUS" = "Running" ]; then
+              echo "✓ AppRun is running!"
+              exit 0
+            fi
+
+            sleep 10
+          done
+
+          echo "⚠ Deployment may still be in progress"
+
       - name: Deploy notification
         run: |
           echo "Backend deployed successfully!"
           echo "Image: ${{ secrets.SAKURA_CONTAINER_REGISTRY_FQDN }}/healthcare-backend:${{ github.sha }}"
+          echo "URL: https://app-${{ secrets.SAKURA_APPRUN_ID }}.ingress.apprun.sakura.ne.jp"
