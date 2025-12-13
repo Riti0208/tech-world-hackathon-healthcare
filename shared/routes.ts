@@ -4,6 +4,12 @@ export interface DbAdapter {
   getPrefectureAvgSteps(prefectureId: number): Promise<number>;
 }
 
+// 画像URLを生成するヘルパー関数
+function getCharacterImageUrl(prefectureId: number, status: number): string {
+  const paddedId = String(prefectureId).padStart(2, '0');
+  return `https://vevadkrbiuoznulqgobv.supabase.co/storage/v1/object/public/healthcare-bucket/${paddedId}-${status}.jpeg`;
+}
+
 export function setupRoutes(app: any, db: DbAdapter) {
   // ヘルスチェック
   app.get('/health', (c: any) => {
@@ -65,6 +71,7 @@ export function setupRoutes(app: any, db: DbAdapter) {
           prefectureId,
           averageSteps,
           status,
+          imageUrl: getCharacterImageUrl(prefectureId, status),
         });
       }
 
@@ -109,6 +116,7 @@ export function setupRoutes(app: any, db: DbAdapter) {
         prefectureId,
         averageSteps,
         status,
+        imageUrl: getCharacterImageUrl(prefectureId, status),
       });
     } catch (error) {
       console.error('Error in GET /characters/:prefectureId:', error);
