@@ -44,14 +44,14 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.SAKURA_OBJECT_STORAGE_SECRET_KEY }}
         run: |
           aws s3 sync dist/ s3://${{ secrets.SAKURA_OBJECT_STORAGE_BUCKET }}/ \
-            --endpoint-url https://${{ secrets.SAKURA_OBJECT_STORAGE_ENDPOINT }} \
+            --endpoint-url ${{ secrets.SAKURA_OBJECT_STORAGE_ENDPOINT }} \
             --region jp-north-1 \
             --delete \
             --cache-control "public, max-age=31536000, immutable" \
             --exclude "index.html"
 
           aws s3 cp dist/index.html s3://${{ secrets.SAKURA_OBJECT_STORAGE_BUCKET }}/index.html \
-            --endpoint-url https://${{ secrets.SAKURA_OBJECT_STORAGE_ENDPOINT }} \
+            --endpoint-url ${{ secrets.SAKURA_OBJECT_STORAGE_ENDPOINT }} \
             --region jp-north-1 \
             --cache-control "public, max-age=0, must-revalidate"
 
