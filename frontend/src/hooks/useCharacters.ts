@@ -16,46 +16,23 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 interface Options {
   pollingMs?: number;
-  mockRandom?: boolean;
   autoFetch?: boolean;
 }
 
 export function useCharacters(options: Options = {}) {
-  const { pollingMs, mockRandom = false, autoFetch = true } = options;
+  const { pollingMs, autoFetch = true } = options;
   const [data, setData] = useState<RankedPrefecture[]>([]);
   const [loading, setLoading] = useState(autoFetch);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
-  const applyStatuses = useCallback((list: RankedPrefecture[]) => {
-    const sorted = [...list].sort((a, b) => b.averageSteps - a.averageSteps);
-    const count = sorted.length;
-    const highCut = Math.max(1, Math.round(count * 0.3));
-    const lowCut = Math.max(1, Math.round(count * 0.3));
-    return sorted.map((item, idx) => ({
-      ...item,
-      status: idx < highCut ? 2 : idx >= count - lowCut ? 0 : 1,
-    }));
-  }, []);
-
-  const generateMockData = useCallback(() => {
-    const ids = Object.keys(prefectureNameById)
-      .map((id) => Number(id))
-      .sort((a, b) => a - b);
-    const base = ids.map((prefectureId) => ({
-      prefectureId,
-      name: prefectureNameById[prefectureId] ?? `県${prefectureId}`,
-      averageSteps: 6000 + Math.floor(Math.random() * 8000),
-      status: 1,
-    }));
-    return applyStatuses(base);
-  }, [applyStatuses]);
-
   const fetchCharacters = useCallback(async () => {
     try {
       setLoading(true);
+      console.log('VITE_API_URL', API_URL);
       const headers: HeadersInit = {};
       if (SUPABASE_ANON_KEY) {
+        headers['apikey'] = SUPABASE_ANON_KEY;
         headers['Authorization'] = `Bearer ${SUPABASE_ANON_KEY}`;
       }
       const res = await fetch(`${API_URL}/characters`, { headers });
@@ -77,7 +54,7 @@ export function useCharacters(options: Options = {}) {
     } finally {
       setLoading(false);
     }
-  }, [generateMockData, mockRandom]);
+  }, []);
 
   useEffect(() => {
     if (autoFetch) {

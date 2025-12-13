@@ -15,7 +15,6 @@ const statusBadge = (status: number) => {
 };
 
 export function Leaderboard() {
-  const useMock = import.meta.env.VITE_USE_MOCK === 'true';
   const [activeTab, setActiveTab] = useState<'rank' | 'map'>('rank');
 
   const {
@@ -26,7 +25,6 @@ export function Leaderboard() {
     lastUpdated: rankLastUpdated,
   } = useCharacters({
     pollingMs: 10000,
-    mockRandom: useMock,
   });
 
   const {
@@ -37,7 +35,6 @@ export function Leaderboard() {
     lastUpdated: mapLastUpdated,
   } = useCharacters({
     autoFetch: false,
-    mockRandom: useMock,
   });
 
   const topPref = rankData[0];
@@ -48,6 +45,7 @@ export function Leaderboard() {
   const tileRefs = useRef(new Map<number, HTMLDivElement>());
   const positions = useRef(new Map<number, DOMRect>());
   const mapRef = useRef<HTMLDivElement | null>(null);
+  const mapInjected = useRef(false);
 
   const prefImages = useMemo(() => [prefIcon1, prefIcon2, prefIcon3], []);
   const imageMapRef = useRef(new Map<number, string>());
@@ -86,6 +84,7 @@ export function Leaderboard() {
 
   // Apply status colors to the SVG map after data changes
   useEffect(() => {
+    if (!mapInjected.current) return;
     const colorByStatus = (status: number) => {
       if (status === 2) return '#34d399';
       if (status === 1) return '#f59e0b';
@@ -105,6 +104,15 @@ export function Leaderboard() {
       });
     });
   }, [mapData]);
+
+  // Inject SVG once whenマップタブを開いたとき
+  useEffect(() => {
+    if (activeTab !== 'map') return;
+    if (mapInjected.current) return;
+    if (!mapRef.current) return;
+    mapRef.current.innerHTML = mapSvg.replace(/class="prefecture"/g, 'class="prefecture pref-hoverable"');
+    mapInjected.current = true;
+  }, [activeTab]);
 
   const renderRankTab = () => (
     <div className="grid gap-6">
@@ -282,14 +290,7 @@ export function Leaderboard() {
           </span>
         </div>
         <div className="rounded-2xl bg-slate-50 p-4">
-          <div className="relative w-full" ref={mapRef}>
-            <div
-              className="w-full h-full [&_svg]:w-full [&_svg]:h-full [&_svg_*]:cursor-pointer"
-              dangerouslySetInnerHTML={{
-                __html: mapSvg.replace(/class="prefecture"/g, 'class="prefecture pref-hoverable"'),
-              }}
-            />
-          </div>
+          <div className="relative w-full" ref={mapRef} />
           {!mapData.length && <p className="mt-3 text-xs text-slate-600">手動取得で表示します。</p>}
         </div>
       </section>
