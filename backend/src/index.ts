@@ -2,11 +2,37 @@ import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { PrismaClient } from '@prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
-import { Pool } from 'pg';
+import { PrismaMariaDb } from '@prisma/adapter-mariadb';
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-const adapter = new PrismaPg(pool);
+// Parse DATABASE_URL to get connection details
+function parseMariaDbUrl(url: string) {
+  // Format: mariadb://user:password@host:port/database
+  const regex = /^mariadb:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/(.+)$/;
+  const match = url.match(regex);
+  if (!match) {
+    throw new Error('Invalid DATABASE_URL format');
+  }
+  return {
+    user: match[1],
+    password: match[2],
+    host: match[3],
+    port: parseInt(match[4]),
+    database: match[5],
+  };
+}
+
+const dbUrl = process.env.DATABASE_URL || 'mariadb://healthcare:healthcare_password@db:3306/healthcare_db';
+const dbConfig = parseMariaDbUrl(dbUrl);
+
+const adapter = new PrismaMariaDb({
+  host: dbConfig.host,
+  port: dbConfig.port,
+  user: dbConfig.user,
+  password: dbConfig.password,
+  database: dbConfig.database,
+  connectionLimit: 4,
+});
+
 const prisma = new PrismaClient({ adapter });
 const app = new Hono();
 
@@ -237,6 +263,5 @@ serve({
 // Graceful shutdown
 process.on('SIGTERM', async () => {
   await prisma.$disconnect();
-  await pool.end();
   process.exit(0);
 });

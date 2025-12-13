@@ -1,17 +1,18 @@
 services:
   db:
-    image: postgres:16-alpine
+    image: mariadb:11
     container_name: healthcare-db
     environment:
-      POSTGRES_USER: healthcare
-      POSTGRES_PASSWORD: healthcare_password
-      POSTGRES_DB: healthcare_db
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: healthcare_db
+      MYSQL_USER: healthcare
+      MYSQL_PASSWORD: healthcare_password
     ports:
-      - "5432:5432"
+      - "3306:3306"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - mariadb_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U healthcare"]
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -25,7 +26,9 @@ services:
     container_name: healthcare-backend
     environment:
       NODE_ENV: development
-      DATABASE_URL: postgresql://healthcare:healthcare_password@db:5432/healthcare_db
+      DATABASE_URL: mariadb://healthcare:healthcare_password@db:3306/healthcare_db
+      # Production Enhanced DB (uncomment to test):
+      # DATABASE_URL: mariadb://healthcaredb:healthcare2025_db@healthcaredb.mariadb-is1.db.sakurausercontent.com:3306/healthcaredb
       PORT: 3000
     ports:
       - "3000:3000"
@@ -54,7 +57,7 @@ services:
       - healthcare-network
 
 volumes:
-  postgres_data:
+  mariadb_data:
 
 networks:
   healthcare-network:

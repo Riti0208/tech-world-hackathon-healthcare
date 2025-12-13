@@ -181,7 +181,7 @@ function App() {
             <div className="space-y-2 text-muted-foreground">
               <p>Frontend: React 19.2.1 + Vite 7.2.7</p>
               <p>Backend: Hono 4.10.8 + Prisma 7.1.0</p>
-              <p>Database: PostgreSQL 16</p>
+              <p>Database: MariaDB 11</p>
               <p>API URL: {API_URL}</p>
             </div>
           </div>
