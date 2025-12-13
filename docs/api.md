@@ -89,17 +89,20 @@ http://localhost:3000
   {
     "prefectureId": 13,
     "averageSteps": 8500,
-    "status": 2
+    "status": 2,
+    "imageUrl": "https://vevadkrbiuoznulqgobv.supabase.co/storage/v1/object/public/healthcare-bucket/13-2.jpeg"
   },
   {
     "prefectureId": 27,
     "averageSteps": 6200,
-    "status": 1
+    "status": 1,
+    "imageUrl": "https://vevadkrbiuoznulqgobv.supabase.co/storage/v1/object/public/healthcare-bucket/27-1.jpeg"
   },
   {
     "prefectureId": 1,
     "averageSteps": 3000,
-    "status": 0
+    "status": 0,
+    "imageUrl": "https://vevadkrbiuoznulqgobv.supabase.co/storage/v1/object/public/healthcare-bucket/01-0.jpeg"
   }
 ]
 ```
@@ -109,6 +112,7 @@ http://localhost:3000
 | prefectureId | Int | 県ID（1〜47） |
 | averageSteps | Int | 平均歩数（小数点以下切り捨て） |
 | status | Int | ステータス（0: 下位, 1: 中間, 2: 上位30%） |
+| imageUrl | String | キャラクター画像URL |
 
 ---
 
@@ -126,7 +130,8 @@ http://localhost:3000
 {
   "prefectureId": 13,
   "averageSteps": 8500,
-  "status": 2
+  "status": 2,
+  "imageUrl": "https://vevadkrbiuoznulqgobv.supabase.co/storage/v1/object/public/healthcare-bucket/13-2.jpeg"
 }
 ```
 
@@ -135,6 +140,7 @@ http://localhost:3000
 | prefectureId | Int | 県ID（1〜47） |
 | averageSteps | Int | 平均歩数（小数点以下切り捨て） |
 | status | Int | ステータス（0: 下位, 1: 中間, 2: 上位30%） |
+| imageUrl | String | キャラクター画像URL |
 
 **エラー**
 
