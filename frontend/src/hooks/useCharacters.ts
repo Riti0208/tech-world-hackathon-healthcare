@@ -5,6 +5,7 @@ export interface Character {
   prefectureId: number;
   averageSteps: number;
   status: number;
+  imageUrl?: string;
 }
 
 export interface RankedPrefecture extends Character {
@@ -16,20 +17,23 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 interface Options {
   pollingMs?: number;
+  autoFetch?: boolean;
 }
 
 export function useCharacters(options: Options = {}) {
-  const { pollingMs } = options;
+  const { pollingMs, autoFetch = true } = options;
   const [data, setData] = useState<RankedPrefecture[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(autoFetch);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [initialized, setInitialized] = useState(false);
 
   const fetchCharacters = useCallback(async () => {
     try {
-      setLoading(true);
+      setLoading((prev) => prev || !initialized);
       const headers: HeadersInit = {};
       if (SUPABASE_ANON_KEY) {
+        headers['apikey'] = SUPABASE_ANON_KEY;
         headers['Authorization'] = `Bearer ${SUPABASE_ANON_KEY}`;
       }
       const res = await fetch(`${API_URL}/characters`, { headers });
@@ -46,24 +50,27 @@ export function useCharacters(options: Options = {}) {
       setData(enriched);
       setError(null);
       setLastUpdated(new Date());
+      setInitialized(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [initialized]);
 
   useEffect(() => {
-    fetchCharacters();
-  }, [fetchCharacters]);
+    if (autoFetch) {
+      fetchCharacters();
+    }
+  }, [autoFetch, fetchCharacters]);
 
   useEffect(() => {
-    if (!pollingMs) return;
+    if (!pollingMs || !autoFetch) return;
     const id = setInterval(() => {
       fetchCharacters();
     }, pollingMs);
     return () => clearInterval(id);
-  }, [fetchCharacters, pollingMs]);
+  }, [autoFetch, fetchCharacters, pollingMs]);
 
   const nationalAverage = useMemo(() => {
     if (!data.length) return 0;
