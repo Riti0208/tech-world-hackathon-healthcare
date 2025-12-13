@@ -33,24 +33,26 @@ jobs:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
         run: npm run build
 
-      - name: Configure AWS CLI for Sakura Object Storage
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.SAKURA_OBJECT_STORAGE_ACCESS_KEY }}
-          aws-secret-access-key: ${{ secrets.SAKURA_OBJECT_STORAGE_SECRET_KEY }}
-          aws-region: jp-north-1
+      - name: Setup AWS CLI
+        run: |
+          pip install awscli
 
       - name: Deploy to Object Storage
         working-directory: frontend
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.SAKURA_OBJECT_STORAGE_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.SAKURA_OBJECT_STORAGE_SECRET_KEY }}
         run: |
           aws s3 sync dist/ s3://${{ secrets.SAKURA_OBJECT_STORAGE_BUCKET }}/ \
             --endpoint-url https://${{ secrets.SAKURA_OBJECT_STORAGE_ENDPOINT }} \
+            --region jp-north-1 \
             --delete \
             --cache-control "public, max-age=31536000, immutable" \
             --exclude "index.html"
 
           aws s3 cp dist/index.html s3://${{ secrets.SAKURA_OBJECT_STORAGE_BUCKET }}/index.html \
             --endpoint-url https://${{ secrets.SAKURA_OBJECT_STORAGE_ENDPOINT }} \
+            --region jp-north-1 \
             --cache-control "public, max-age=0, must-revalidate"
 
       - name: Deploy notification
