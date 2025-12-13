@@ -12,6 +12,7 @@ export interface RankedPrefecture extends Character {
 }
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 interface Options {
   pollingMs?: number;
@@ -27,7 +28,11 @@ export function useCharacters(options: Options = {}) {
   const fetchCharacters = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_URL}/characters`);
+      const headers: HeadersInit = {};
+      if (SUPABASE_ANON_KEY) {
+        headers['Authorization'] = `Bearer ${SUPABASE_ANON_KEY}`;
+      }
+      const res = await fetch(`${API_URL}/characters`, { headers });
       if (!res.ok) {
         throw new Error(`API error: ${res.status}`);
       }
