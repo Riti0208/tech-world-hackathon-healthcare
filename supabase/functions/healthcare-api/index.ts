@@ -3,7 +3,7 @@ import { Hono } from 'https://deno.land/x/hono@v4.0.0/mod.ts';
 import { cors } from 'https://deno.land/x/hono@v4.0.0/middleware.ts';
 import { Client } from 'https://deno.land/x/postgres@v0.17.0/mod.ts';
 
-const app = new Hono();
+const app = new Hono().basePath('/healthcare-api');
 
 const getDbClient = async () => {
   const client = new Client(Deno.env.get('DATABASE_URL')!);
@@ -167,4 +167,4 @@ app.get('/characters/:prefectureId', async (c) => {
   }
 });
 
-Deno.serve(app.fetch);
+Deno.serve((req) => app.fetch(req));

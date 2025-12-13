@@ -12,7 +12,12 @@ function App() {
   useEffect(() => {
     const checkHealth = async () => {
       try {
-        const response = await fetch('http://localhost:3000/health');
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+        const response = await fetch(`${apiUrl}/health`, {
+          headers: {
+            'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZldmFka3JiaXVvem51bHFnb2J2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU2MDM1MTQsImV4cCI6MjA4MTE3OTUxNH0.zfWk87Mh1QLmziZsGHuXZC8QTu3duP0Yvt_r30s_VuM`
+          }
+        });
         const data = await response.json();
         setHealth(data);
       } catch (error) {
