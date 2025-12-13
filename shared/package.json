@@ -1,0 +1,7 @@
+{
+  "name": "shared-routes",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "routes.ts",
+  "types": "routes.ts"
+}
