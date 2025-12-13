@@ -46,6 +46,7 @@ jobs:
           aws s3 sync dist/ s3://${{ secrets.SAKURA_OBJECT_STORAGE_BUCKET }}/ \
             --endpoint-url ${{ secrets.SAKURA_OBJECT_STORAGE_ENDPOINT }} \
             --region jp-north-1 \
+            --acl public-read \
             --delete \
             --cache-control "public, max-age=31536000, immutable" \
             --exclude "index.html"
@@ -53,6 +54,7 @@ jobs:
           aws s3 cp dist/index.html s3://${{ secrets.SAKURA_OBJECT_STORAGE_BUCKET }}/index.html \
             --endpoint-url ${{ secrets.SAKURA_OBJECT_STORAGE_ENDPOINT }} \
             --region jp-north-1 \
+            --acl public-read \
             --cache-control "public, max-age=0, must-revalidate"
 
       - name: Deploy notification
