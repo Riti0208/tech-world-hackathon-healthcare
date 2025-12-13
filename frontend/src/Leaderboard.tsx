@@ -165,8 +165,12 @@ export function Leaderboard() {
               >
                 <div className="relative p-6 md:p-8 flex flex-col gap-6 lg:flex-row lg:items-center">
                   <div className="relative w-full lg:w-1/2">
-                    <div className="aspect-[4/3] rounded-2xl overflow-hidden shadow-lg shadow-slate-300/40">
-                      <img src={pickImage(topPref.prefectureId, topPref.imageUrl)} alt={`${topPref.name} のイメージ`} className="h-full w-full object-cover" />
+                    <div className="aspect-square max-h-[380px] rounded-2xl overflow-hidden border border-slate-200 bg-white shadow-lg shadow-slate-300/40">
+                      <img
+                        src={pickImage(topPref.prefectureId, topPref.imageUrl)}
+                        alt={`${topPref.name} のイメージ`}
+                        className="h-full w-full object-contain p-4"
+                      />
                     </div>
                     <div className="absolute top-3 left-3 inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-800 shadow-sm">
                       <span className="h-9 w-9 rounded-full bg-slate-100 text-slate-800 flex items-center justify-center text-sm font-bold">#1</span>
@@ -214,8 +218,12 @@ export function Leaderboard() {
                   className="relative overflow-hidden rounded-2xl bg-white shadow-[0_12px_40px_rgba(0,0,0,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_50px_rgba(0,0,0,0.12)]"
                 >
                   <div className="relative h-full flex flex-col">
-                    <div className="relative h-44 w-full overflow-hidden bg-slate-50">
-                      <img src={pickImage(pref.prefectureId, pref.imageUrl)} alt={`${pref.name} のイメージ`} className="h-full w-full object-cover" />
+                    <div className="relative aspect-square w-full overflow-hidden bg-white border border-slate-200">
+                      <img
+                        src={pickImage(pref.prefectureId, pref.imageUrl)}
+                        alt={`${pref.name} のイメージ`}
+                        className="h-full w-full object-contain p-3"
+                      />
                       <div className="absolute top-3 left-3 inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm">
                         <span className="h-8 w-8 rounded-full bg-slate-100 text-slate-800 flex items-center justify-center text-sm font-bold">
                           #{idx + 2}
@@ -348,7 +356,7 @@ export function Leaderboard() {
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" aria-hidden />
               <div className="ml-auto inline-flex items-center gap-2">
                 <RefreshCw className="h-4 w-4" />
-                <span>自動更新: 10秒</span>
+                <span>自動更新: 60秒</span>
               </div>
             </div>
           ) : (
