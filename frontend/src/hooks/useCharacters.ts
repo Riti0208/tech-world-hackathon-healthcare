@@ -15,18 +15,50 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 interface Options {
   pollingMs?: number;
+  mockRandom?: boolean;
+  autoFetch?: boolean;
 }
 
 export function useCharacters(options: Options = {}) {
-  const { pollingMs } = options;
+  const { pollingMs, mockRandom = false, autoFetch = true } = options;
   const [data, setData] = useState<RankedPrefecture[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(autoFetch);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  const applyStatuses = useCallback((list: RankedPrefecture[]) => {
+    const sorted = [...list].sort((a, b) => b.averageSteps - a.averageSteps);
+    const count = sorted.length;
+    const highCut = Math.max(1, Math.round(count * 0.3));
+    const lowCut = Math.max(1, Math.round(count * 0.3));
+    return sorted.map((item, idx) => ({
+      ...item,
+      status: idx < highCut ? 2 : idx >= count - lowCut ? 0 : 1,
+    }));
+  }, []);
+
+  const generateMockData = useCallback(() => {
+    const ids = Object.keys(prefectureNameById)
+      .map((id) => Number(id))
+      .sort((a, b) => a - b);
+    const base = ids.map((prefectureId) => ({
+      prefectureId,
+      name: prefectureNameById[prefectureId] ?? `県${prefectureId}`,
+      averageSteps: 6000 + Math.floor(Math.random() * 8000),
+      status: 1,
+    }));
+    return applyStatuses(base);
+  }, [applyStatuses]);
 
   const fetchCharacters = useCallback(async () => {
     try {
       setLoading(true);
+      if (mockRandom) {
+        setData(generateMockData());
+        setError(null);
+        setLastUpdated(new Date());
+        return;
+      }
       const res = await fetch(`${API_URL}/characters`);
       if (!res.ok) {
         throw new Error(`API error: ${res.status}`);
@@ -46,19 +78,21 @@ export function useCharacters(options: Options = {}) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [generateMockData, mockRandom]);
 
   useEffect(() => {
-    fetchCharacters();
-  }, [fetchCharacters]);
+    if (autoFetch) {
+      fetchCharacters();
+    }
+  }, [autoFetch, fetchCharacters]);
 
   useEffect(() => {
-    if (!pollingMs) return;
+    if (!pollingMs || !autoFetch) return;
     const id = setInterval(() => {
       fetchCharacters();
     }, pollingMs);
     return () => clearInterval(id);
-  }, [fetchCharacters, pollingMs]);
+  }, [autoFetch, fetchCharacters, pollingMs]);
 
   const nationalAverage = useMemo(() => {
     if (!data.length) return 0;
