@@ -22,9 +22,9 @@ jobs:
       - name: Log in to Sakura Container Registry
         uses: docker/login-action@v3
         with:
-          registry: ${{ secrets.SAKURA_REGISTRY_URL }}
-          username: ${{ secrets.SAKURA_REGISTRY_USER }}
-          password: ${{ secrets.SAKURA_REGISTRY_PASSWORD }}
+          registry: ${{ secrets.SAKURA_CONTAINER_REGISTRY_FQDN }}
+          username: ${{ secrets.SAKURA_CONTAINER_REGISTRY_USERNAME }}
+          password: ${{ secrets.SAKURA_CONTAINER_REGISTRY_PASSWORD }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
@@ -32,7 +32,7 @@ jobs:
           context: ./backend
           file: ./backend/Dockerfile.prod
           push: true
-          tags: ${{ secrets.SAKURA_REGISTRY_URL }}/healthcare-backend:latest,${{ secrets.SAKURA_REGISTRY_URL }}/healthcare-backend:${{ github.sha }}
+          tags: ${{ secrets.SAKURA_CONTAINER_REGISTRY_FQDN }}/healthcare-backend:latest,${{ secrets.SAKURA_CONTAINER_REGISTRY_FQDN }}/healthcare-backend:${{ github.sha }}
           platforms: linux/amd64
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -40,4 +40,4 @@ jobs:
       - name: Deploy notification
         run: |
           echo "Backend deployed successfully!"
-          echo "Image: ${{ secrets.SAKURA_REGISTRY_URL }}/healthcare-backend:${{ github.sha }}"
+          echo "Image: ${{ secrets.SAKURA_CONTAINER_REGISTRY_FQDN }}/healthcare-backend:${{ github.sha }}"
