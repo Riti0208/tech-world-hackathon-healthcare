@@ -24,7 +24,7 @@ export function Leaderboard() {
     refetch: refetchRank,
     lastUpdated: rankLastUpdated,
   } = useCharacters({
-    pollingMs: 10000,
+    pollingMs: 60000,
   });
 
   const {
@@ -45,6 +45,7 @@ export function Leaderboard() {
   const tileRefs = useRef(new Map<number, HTMLDivElement>());
   const positions = useRef(new Map<number, DOMRect>());
   const mapRef = useRef<HTMLDivElement | null>(null);
+  const mapFetched = useRef(false);
   const mapInjected = useRef(false);
 
   const prefImages = useMemo(() => [prefIcon1, prefIcon2, prefIcon3], []);
@@ -114,6 +115,14 @@ export function Leaderboard() {
     mapRef.current.innerHTML = mapSvg.replace(/class="prefecture"/g, 'class="prefecture pref-hoverable"');
     mapInjected.current = true;
   }, [activeTab]);
+
+  // Fetch map data automatically the first time the map tab is opened
+  useEffect(() => {
+    if (activeTab !== 'map') return;
+    if (mapFetched.current) return;
+    mapFetched.current = true;
+    refetchMap();
+  }, [activeTab, refetchMap]);
 
   const renderRankTab = () => (
     <div className="grid gap-6">
