@@ -328,7 +328,7 @@ export function Leaderboard() {
                 <p className="text-xs uppercase tracking-[0.35em] text-slate-500 font-semibold">Live Tiles</p>
                 <h1 className="text-3xl lg:text-4xl font-bold tracking-tight">リーダーボード</h1>
                 <p className="text-sm text-slate-600 mt-1">
-                  ランキングは10秒ごと自動更新。マップは必要に応じて手動取得できます。
+                  ランキングは1分ごと自動更新。マップは必要に応じて手動取得できます。
                 </p>
               </div>
             </div>

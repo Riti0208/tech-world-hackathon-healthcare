@@ -26,10 +26,11 @@ export function useCharacters(options: Options = {}) {
   const [loading, setLoading] = useState(autoFetch);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [initialized, setInitialized] = useState(false);
 
   const fetchCharacters = useCallback(async () => {
     try {
-      setLoading(true);
+      setLoading((prev) => prev || !initialized);
       const headers: HeadersInit = {};
       if (SUPABASE_ANON_KEY) {
         headers['apikey'] = SUPABASE_ANON_KEY;
@@ -49,12 +50,13 @@ export function useCharacters(options: Options = {}) {
       setData(enriched);
       setError(null);
       setLastUpdated(new Date());
+      setInitialized(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [initialized]);
 
   useEffect(() => {
     if (autoFetch) {
