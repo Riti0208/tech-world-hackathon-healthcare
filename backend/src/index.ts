@@ -25,7 +25,8 @@ const dbUrl = process.env.DATABASE_URL || 'mariadb://healthcare:healthcare_passw
 const dbConfig = parseMariaDbUrl(dbUrl);
 
 // SSL configuration: enable for Enhanced DB (remote host)
-const sslConfig = dbConfig.host.includes('sakurausercontent.com') ? true : false;
+// TEMPORARY: Trying without SSL to isolate the issue
+const sslConfig = false; // dbConfig.host.includes('sakurausercontent.com') ? true : false;
 
 const adapter = new PrismaMariaDb({
   host: dbConfig.host,
