@@ -15,10 +15,13 @@ const statusBadge = (status: number) => {
   return { label: 'これから', color: 'bg-slate-200 text-slate-900 border-slate-300' };
 };
 
-export function V4TileBoard() {
-  const { data, loading, error, refetch, lastUpdated } =
-    useCharacters({ pollingMs: 10000 });
+export function Leaderboard() {
+  const { data, loading, error, refetch, lastUpdated } = useCharacters({ pollingMs: 10000 });
   const topPref = data[0];
+  const secondSteps = data[1]?.averageSteps ?? topPref?.averageSteps ?? 0;
+  const leadGap = Math.max(0, (topPref?.averageSteps ?? 0) - secondSteps);
+  const topSteps = topPref?.averageSteps || 1;
+
   const tileRefs = useRef(new Map<number, HTMLDivElement>());
   const positions = useRef(new Map<number, DOMRect>());
   const prefImages = useMemo(() => [prefIcon1, prefIcon2, prefIcon3], []);
@@ -31,7 +34,6 @@ export function V4TileBoard() {
     return choice;
   };
 
-  // Basic FLIP-style animation so tiles glide when順位が入れ替わる.
   useLayoutEffect(() => {
     const nextPositions = new Map<number, DOMRect>();
     tileRefs.current.forEach((el, id) => {
@@ -58,31 +60,24 @@ export function V4TileBoard() {
     positions.current = nextPositions;
   }, [data]);
 
-  const maxSteps = topPref?.averageSteps || 1;
-  const topSteps = maxSteps;
-  const secondSteps = data[1]?.averageSteps ?? topSteps;
-  const leadGap = Math.max(0, topSteps - secondSteps);
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-amber-50 to-orange-50 text-slate-900">
-      <div className="absolute inset-0 -z-10 opacity-80 bg-[radial-gradient(circle_at_10%_20%,rgba(251,191,36,0.22),transparent_35%),radial-gradient(circle_at_90%_10%,rgba(248,113,113,0.18),transparent_30%),radial-gradient(circle_at_60%_70%,rgba(96,165,250,0.16),transparent_35%)]" />
+    <div className="min-h-screen bg-slate-50 text-slate-900">
       <div className="max-w-7xl mx-auto px-6 py-10 space-y-8">
-        <header className="rounded-3xl border border-amber-100 bg-white shadow-[0_18px_60px_rgba(0,0,0,0.08)] overflow-hidden relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-amber-100 via-white to-orange-100 opacity-80" aria-hidden />
+        <header className="rounded-3xl bg-white text-slate-900 shadow-[0_18px_60px_rgba(0,0,0,0.08)] overflow-hidden relative">
           <div className="relative px-6 py-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="flex items-start gap-4">
-              <div className="h-16 w-16 rounded-2xl overflow-hidden border border-amber-100 bg-amber-50 shadow-inner">
+              <div className="h-16 w-16 rounded-2xl overflow-hidden bg-slate-100 shadow-inner">
                 <img src={prefIcon1} alt="キャラクター" className="h-full w-full object-cover" />
               </div>
               <div>
-                <p className="text-xs uppercase tracking-[0.35em] text-amber-600 font-semibold">
+                <p className="text-xs uppercase tracking-[0.35em] text-slate-500 font-semibold">
                   Live Tiles
                 </p>
                 <h1 className="text-3xl lg:text-4xl font-bold tracking-tight">
                   リーダーボード
                 </h1>
-                <p className="text-sm text-slate-700 mt-1">
-                  10秒ごとに最新の並びへ自動更新。動くタイルで順位の変化を直感的に確認できます。
+                <p className="text-sm text-slate-600 mt-1">
+                  10秒ごとに最新の並びへ自動更新。タイルが滑らかに動き、今の順位がひと目でわかります。
                 </p>
               </div>
             </div>
@@ -94,7 +89,7 @@ export function V4TileBoard() {
                 <RefreshCw className="h-4 w-4" />
                 今すぐ更新
               </button>
-              <div className="text-xs text-slate-700 bg-slate-100 px-3 py-2 rounded-full border border-slate-200">
+              <div className="text-xs text-slate-700 bg-slate-100 px-3 py-2 rounded-full">
                 自動更新: 10秒ごと
               </div>
             </div>
@@ -107,7 +102,7 @@ export function V4TileBoard() {
         </header>
 
         {error && (
-          <div className="rounded-2xl border border-rose-200 bg-rose-50 text-rose-700 px-4 py-3 flex items-center gap-2 shadow-sm">
+          <div className="rounded-2xl bg-rose-50 text-rose-700 px-4 py-3 flex items-center gap-2 shadow-sm">
             データ取得に失敗しました: {error}
           </div>
         )}
@@ -115,7 +110,7 @@ export function V4TileBoard() {
         <div className="grid gap-6">
           <section className="space-y-3">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-amber-700 font-semibold">
+              <div className="flex items-center gap-2 text-slate-800 font-semibold">
                 <Sparkles className="h-5 w-5" />
                 <span>ライブタイル</span>
                 <span className="text-xs text-slate-500">全国 {data.length || 47} 県</span>
@@ -126,7 +121,7 @@ export function V4TileBoard() {
                 {Array.from({ length: 6 }).map((_, i) => (
                   <div
                     key={i}
-                    className="aspect-[4/3] rounded-3xl border border-amber-100 bg-amber-50 animate-pulse"
+                    className="aspect-[4/3] rounded-3xl bg-slate-100 animate-pulse"
                   />
                 ))}
               </div>
@@ -144,7 +139,6 @@ export function V4TileBoard() {
                     }}
                     className="relative overflow-hidden rounded-3xl bg-white text-slate-900 shadow-[0_24px_90px_rgba(0,0,0,0.08)] sm:col-span-2 xl:col-span-3"
                   >
-                    <div className="absolute inset-0 opacity-60" aria-hidden />
                     <div className="relative p-6 md:p-8 flex flex-col gap-6 lg:flex-row lg:items-center">
                       <div className="relative w-full lg:w-1/2">
                         <div className="aspect-[4/3] rounded-2xl overflow-hidden shadow-lg shadow-slate-300/40">
@@ -232,10 +226,10 @@ export function V4TileBoard() {
                               {badge.label}
                             </span>
                           </div>
-                        <div className="space-y-1.5">
-                          <div className="flex items-center justify-between text-xs text-slate-600">
-                            <span>あと {numberFormatter.format(gapToTop)} 歩で1位</span>
-                          </div>
+                          <div className="space-y-1.5">
+                            <div className="flex items-center justify-between text-xs text-slate-600">
+                              <span>あと {numberFormatter.format(gapToTop)} 歩で1位</span>
+                            </div>
                             <div className="h-2 rounded-full overflow-hidden bg-slate-200">
                               <div
                                 className="h-full rounded-full bg-slate-700"
