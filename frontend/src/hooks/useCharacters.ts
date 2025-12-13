@@ -18,6 +18,7 @@ interface Options {
 }
 
 export function useCharacters(options: Options = {}) {
+  const { pollingMs } = options;
   const [data, setData] = useState<RankedPrefecture[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -52,12 +53,12 @@ export function useCharacters(options: Options = {}) {
   }, [fetchCharacters]);
 
   useEffect(() => {
-    if (!options.pollingMs) return;
+    if (!pollingMs) return;
     const id = setInterval(() => {
       fetchCharacters();
-    }, options.pollingMs);
+    }, pollingMs);
     return () => clearInterval(id);
-  }, [fetchCharacters, options.pollingMs]);
+  }, [fetchCharacters, pollingMs]);
 
   const nationalAverage = useMemo(() => {
     if (!data.length) return 0;
