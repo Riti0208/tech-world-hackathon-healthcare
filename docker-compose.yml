@@ -44,7 +44,8 @@ services:
       dockerfile: Dockerfile
     container_name: healthcare-frontend
     environment:
-      VITE_API_URL: http://localhost:3000
+      VITE_API_URL: https://vevadkrbiuoznulqgobv.supabase.co/functions/v1/healthcare-api
+      VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZldmFka3JiaXVvem51bHFnb2J2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU2MDM1MTQsImV4cCI6MjA4MTE3OTUxNH0.zfWk87Mh1QLmziZsGHuXZC8QTu3duP0Yvt_r30s_VuM
     ports:
       - "5173:5173"
     volumes:
