@@ -12,13 +12,57 @@ const app = new Hono();
 
 // CORS設定
 app.use('/*', cors({
-  origin: ['http://localhost:5173'],
+  origin: ['http://localhost:5173', 'https://healthcare-frontend-prod.s3.isk01.sakurastorage.jp'],
   credentials: true,
 }));
 
 // ヘルスチェック
 app.get('/health', (c) => {
   return c.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// DBテスト用エンドポイント
+app.get('/test/users', async (c) => {
+  try {
+    const users = await prisma.user.findMany({
+      take: 10,
+      orderBy: { updatedAt: 'desc' },
+    });
+    return c.json({
+      success: true,
+      count: users.length,
+      users
+    });
+  } catch (error) {
+    console.error('Error in GET /test/users:', error);
+    return c.json({ error: 'Database error', details: String(error) }, 500);
+  }
+});
+
+// テストユーザー作成
+app.post('/test/create-user', async (c) => {
+  try {
+    const uuid = `test-${Date.now()}`;
+    const prefectureId = Math.floor(Math.random() * 47) + 1;
+    const steps = Math.floor(Math.random() * 10000);
+
+    const user = await prisma.user.create({
+      data: {
+        uuid,
+        prefectureId,
+        steps,
+      },
+    });
+
+    return c.json({
+      success: true,
+      message: 'Test user created',
+      user
+    });
+  } catch (error) {
+    console.error('Error in POST /test/create-user:', error);
+    return c.json({ error: 'Database error', details: String(error) }, 500);
+  }
 });
 
 // 県対抗歩数バトル API Routes

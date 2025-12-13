@@ -5,14 +5,27 @@ interface HealthStatus {
   timestamp: string;
 }
 
+interface User {
+  uuid: string;
+  prefectureId: number;
+  steps: number;
+  updatedAt: string;
+}
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
 function App() {
   const [health, setHealth] = useState<HealthStatus | null>(null);
   const [loading, setLoading] = useState(true);
+  const [users, setUsers] = useState<User[]>([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [message, setMessage] = useState('');
 
   useEffect(() => {
     const checkHealth = async () => {
       try {
-        const response = await fetch('http://localhost:3000/health');
+        const response = await fetch(`${API_URL}/health`);
         const data = await response.json();
         setHealth(data);
       } catch (error) {
@@ -24,6 +37,48 @@ function App() {
 
     checkHealth();
   }, []);
+
+  const loadUsers = async () => {
+    setUsersLoading(true);
+    setMessage('');
+    try {
+      const response = await fetch(`${API_URL}/test/users`);
+      const data = await response.json();
+      if (data.success) {
+        setUsers(data.users);
+        setMessage(`✓ Loaded ${data.count} users from database`);
+      } else {
+        setMessage('✗ Failed to load users');
+      }
+    } catch (error) {
+      console.error('Failed to load users:', error);
+      setMessage('✗ Error loading users');
+    } finally {
+      setUsersLoading(false);
+    }
+  };
+
+  const createTestUser = async () => {
+    setCreating(true);
+    setMessage('');
+    try {
+      const response = await fetch(`${API_URL}/test/create-user`, {
+        method: 'POST',
+      });
+      const data = await response.json();
+      if (data.success) {
+        setMessage(`✓ Created user: ${data.user.uuid}`);
+        loadUsers();
+      } else {
+        setMessage('✗ Failed to create user');
+      }
+    } catch (error) {
+      console.error('Failed to create user:', error);
+      setMessage('✗ Error creating user');
+    } finally {
+      setCreating(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -60,16 +115,74 @@ function App() {
           </div>
 
           <div className="mt-8 rounded-lg border border-border bg-background p-6">
-            <h2 className="text-2xl font-semibold mb-4">Getting Started</h2>
-            <div className="prose max-w-none">
+            <h2 className="text-2xl font-semibold mb-4">Database Test</h2>
+            <div className="space-y-4">
               <p className="text-muted-foreground">
-                Welcome to your Healthcare application! The environment is ready for development.
+                Test database connection and operations
               </p>
-              <ul className="mt-4 space-y-2 text-muted-foreground">
-                <li>Frontend: React 19.2.1 + Vite 7.2.7</li>
-                <li>Backend: Hono 4.10.8 + Prisma 7.1.0</li>
-                <li>Database: PostgreSQL 16</li>
-              </ul>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={loadUsers}
+                  disabled={usersLoading}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {usersLoading ? 'Loading...' : 'Load Users'}
+                </button>
+                <button
+                  onClick={createTestUser}
+                  disabled={creating}
+                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+                >
+                  {creating ? 'Creating...' : 'Create Test User'}
+                </button>
+              </div>
+
+              {message && (
+                <p className={`font-medium ${message.startsWith('✓') ? 'text-green-600' : 'text-red-600'}`}>
+                  {message}
+                </p>
+              )}
+
+              {users.length > 0 && (
+                <div className="mt-4">
+                  <h3 className="text-lg font-semibold mb-2">Recent Users</h3>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full border-collapse border border-border">
+                      <thead>
+                        <tr className="bg-muted">
+                          <th className="border border-border px-4 py-2 text-left">UUID</th>
+                          <th className="border border-border px-4 py-2 text-left">Prefecture ID</th>
+                          <th className="border border-border px-4 py-2 text-left">Steps</th>
+                          <th className="border border-border px-4 py-2 text-left">Updated At</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {users.map((user) => (
+                          <tr key={user.uuid} className="hover:bg-muted/50">
+                            <td className="border border-border px-4 py-2 font-mono text-sm">{user.uuid}</td>
+                            <td className="border border-border px-4 py-2">{user.prefectureId}</td>
+                            <td className="border border-border px-4 py-2">{user.steps.toLocaleString()}</td>
+                            <td className="border border-border px-4 py-2 text-sm">
+                              {new Date(user.updatedAt).toLocaleString()}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-8 rounded-lg border border-border bg-background p-6">
+            <h2 className="text-2xl font-semibold mb-4">Environment Info</h2>
+            <div className="space-y-2 text-muted-foreground">
+              <p>Frontend: React 19.2.1 + Vite 7.2.7</p>
+              <p>Backend: Hono 4.10.8 + Prisma 7.1.0</p>
+              <p>Database: PostgreSQL 16</p>
+              <p>API URL: {API_URL}</p>
             </div>
           </div>
         </main>
