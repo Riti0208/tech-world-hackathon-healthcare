@@ -31,11 +31,9 @@ services:
       - "3000:3000"
     volumes:
       - ./backend:/app
-      - /app/node_modules
     depends_on:
       db:
         condition: service_healthy
-    command: npm run dev
     networks:
       - healthcare-network
 
@@ -50,10 +48,8 @@ services:
       - "5173:5173"
     volumes:
       - ./frontend:/app
-      - /app/node_modules
     depends_on:
       - backend
-    command: npm run dev
     networks:
       - healthcare-network
 

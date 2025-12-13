@@ -1,6 +1,9 @@
 #!/bin/sh
 set -e
 
+echo "Installing dependencies..."
+npm install
+
 echo "Waiting for database to be ready..."
 sleep 5
 
