@@ -40,3 +40,10 @@ yarn-error.log*
 # Prisma
 prisma/*.db
 prisma/*.db-journal
+
+# Terraform
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/terraform.tfvars
+terraform/.terraform.lock.hcl

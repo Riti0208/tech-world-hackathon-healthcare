@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { apiClient } from './lib/client';
 
 interface HealthStatus {
   status: string;
