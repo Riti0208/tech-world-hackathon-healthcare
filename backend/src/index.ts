@@ -21,50 +21,164 @@ app.get('/health', (c) => {
   return c.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// API Routes
-const api = new Hono();
+// 県対抗歩数バトル API Routes
 
-// ユーザー関連
-api.get('/users', async (c) => {
-  const users = await prisma.user.findMany();
-  return c.json(users);
+// 歩数登録
+app.post('/steps', async (c) => {
+  try {
+    const body = await c.req.json();
+    const { uuid, prefectureId, steps } = body;
+
+    // バリデーション
+    if (!uuid || typeof uuid !== 'string') {
+      return c.json({ error: 'Invalid uuid' }, 400);
+    }
+    if (typeof prefectureId !== 'number' || prefectureId < 1 || prefectureId > 47) {
+      return c.json({ error: 'Invalid prefectureId. Must be between 1 and 47' }, 400);
+    }
+    if (typeof steps !== 'number' || steps < 0) {
+      return c.json({ error: 'Invalid steps. Must be a non-negative number' }, 400);
+    }
+
+    // Upsert（存在すれば更新、なければ作成）
+    await prisma.user.upsert({
+      where: { uuid },
+      update: {
+        prefectureId,
+        steps,
+      },
+      create: {
+        uuid,
+        prefectureId,
+        steps,
+      },
+    });
+
+    return c.json({ success: true });
+  } catch (error) {
+    console.error('Error in POST /steps:', error);
+    return c.json({ error: 'Internal server error' }, 500);
+  }
 });
 
-api.post('/users', async (c) => {
-  const body = await c.req.json();
-  const user = await prisma.user.create({
-    data: {
-      email: body.email,
-      name: body.name,
-    },
-  });
-  return c.json(user, 201);
+// キャラ一覧取得
+app.get('/characters', async (c) => {
+  try {
+    // 全県のデータを取得し、平均歩数を計算
+    const prefectureStats = await prisma.$queryRaw<Array<{
+      prefecture_id: number;
+      avg_steps: number;
+      user_count: number;
+    }>>`
+      SELECT
+        "prefectureId" as prefecture_id,
+        COALESCE(AVG(steps), 0)::int as avg_steps,
+        COUNT(*) as user_count
+      FROM "User"
+      GROUP BY "prefectureId"
+    `;
+
+    // 平均歩数が1以上の県を抽出してソート
+    const activePrefs = prefectureStats
+      .filter(p => p.avg_steps > 0)
+      .sort((a, b) => b.avg_steps - a.avg_steps);
+
+    // ステータス計算
+    const statusMap = new Map<number, number>();
+    const top30Percent = Math.ceil(activePrefs.length * 0.3);
+
+    activePrefs.forEach((pref, index) => {
+      if (index < top30Percent) {
+        statusMap.set(pref.prefecture_id, 2); // 上位30%
+      } else if (index < activePrefs.length / 2) {
+        statusMap.set(pref.prefecture_id, 1); // 中間
+      } else {
+        statusMap.set(pref.prefecture_id, 1); // 中間（30%以降は1か0に分ける）
+      }
+    });
+
+    // 全47県分のデータを作成
+    const characters = [];
+    for (let prefectureId = 1; prefectureId <= 47; prefectureId++) {
+      const stat = prefectureStats.find(p => p.prefecture_id === prefectureId);
+      const averageSteps = stat?.avg_steps || 0;
+      const status = statusMap.get(prefectureId) || 0;
+
+      characters.push({
+        prefectureId,
+        averageSteps,
+        status,
+      });
+    }
+
+    return c.json(characters);
+  } catch (error) {
+    console.error('Error in GET /characters:', error);
+    return c.json({ error: 'Internal server error' }, 500);
+  }
 });
 
-// ヘルスレコード関連
-api.get('/health-records', async (c) => {
-  const userId = c.req.query('userId');
-  const records = await prisma.healthRecord.findMany({
-    where: userId ? { userId } : undefined,
-    orderBy: { recordedAt: 'desc' },
-  });
-  return c.json(records);
-});
+// キャラ単体取得
+app.get('/characters/:prefectureId', async (c) => {
+  try {
+    const prefectureId = parseInt(c.req.param('prefectureId'));
 
-api.post('/health-records', async (c) => {
-  const body = await c.req.json();
-  const record = await prisma.healthRecord.create({
-    data: {
-      userId: body.userId,
-      recordType: body.recordType,
-      data: body.data,
-      recordedAt: body.recordedAt ? new Date(body.recordedAt) : new Date(),
-    },
-  });
-  return c.json(record, 201);
-});
+    // バリデーション
+    if (isNaN(prefectureId) || prefectureId < 1 || prefectureId > 47) {
+      return c.json({ error: 'Invalid prefectureId. Must be between 1 and 47' }, 400);
+    }
 
-app.route('/api', api);
+    // 指定県の平均歩数を計算
+    const result = await prisma.$queryRaw<Array<{
+      avg_steps: number;
+    }>>`
+      SELECT COALESCE(AVG(steps), 0)::int as avg_steps
+      FROM "User"
+      WHERE "prefectureId" = ${prefectureId}
+    `;
+
+    const averageSteps = result[0]?.avg_steps || 0;
+
+    // 全県のデータを取得してステータスを計算
+    const allPrefs = await prisma.$queryRaw<Array<{
+      prefecture_id: number;
+      avg_steps: number;
+    }>>`
+      SELECT
+        "prefectureId" as prefecture_id,
+        COALESCE(AVG(steps), 0)::int as avg_steps
+      FROM "User"
+      GROUP BY "prefectureId"
+    `;
+
+    const activePrefs = allPrefs
+      .filter(p => p.avg_steps > 0)
+      .sort((a, b) => b.avg_steps - a.avg_steps);
+
+    const top30Percent = Math.ceil(activePrefs.length * 0.3);
+    const rank = activePrefs.findIndex(p => p.prefecture_id === prefectureId);
+
+    let status = 0;
+    if (rank !== -1 && averageSteps > 0) {
+      if (rank < top30Percent) {
+        status = 2; // 上位30%
+      } else if (rank < activePrefs.length / 2) {
+        status = 1; // 中間
+      } else {
+        status = 1; // 中間（30%以降は1か0に分ける）
+      }
+    }
+
+    return c.json({
+      prefectureId,
+      averageSteps,
+      status,
+    });
+  } catch (error) {
+    console.error('Error in GET /characters/:prefectureId:', error);
+    return c.json({ error: 'Internal server error' }, 500);
+  }
+});
 
 const port = parseInt(process.env.PORT || '3000');
 
