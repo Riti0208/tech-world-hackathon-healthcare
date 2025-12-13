@@ -5,6 +5,7 @@ export interface Character {
   prefectureId: number;
   averageSteps: number;
   status: number;
+  imageUrl?: string;
 }
 
 export interface RankedPrefecture extends Character {
@@ -29,7 +30,6 @@ export function useCharacters(options: Options = {}) {
   const fetchCharacters = useCallback(async () => {
     try {
       setLoading(true);
-      console.log('VITE_API_URL', API_URL);
       const headers: HeadersInit = {};
       if (SUPABASE_ANON_KEY) {
         headers['apikey'] = SUPABASE_ANON_KEY;

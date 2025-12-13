@@ -48,12 +48,13 @@ export function Leaderboard() {
   const mapInjected = useRef(false);
 
   const prefImages = useMemo(() => [prefIcon1, prefIcon2, prefIcon3], []);
-  const imageMapRef = useRef(new Map<number, string>());
-  const pickImage = (prefectureId: number) => {
-    const cached = imageMapRef.current.get(prefectureId);
+  const fallbackImageMap = useRef(new Map<number, string>());
+  const pickImage = (prefectureId: number, imageUrl?: string) => {
+    if (imageUrl) return imageUrl;
+    const cached = fallbackImageMap.current.get(prefectureId);
     if (cached) return cached;
     const choice = prefImages[Math.floor(Math.random() * prefImages.length)];
-    imageMapRef.current.set(prefectureId, choice);
+    fallbackImageMap.current.set(prefectureId, choice);
     return choice;
   };
 
@@ -143,7 +144,7 @@ export function Leaderboard() {
             ))}
           </div>
         ) : (
-          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 auto-rows-[1fr]">
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
             {topPref && (
               <div
                 key={topPref.prefectureId}
@@ -156,7 +157,7 @@ export function Leaderboard() {
                 <div className="relative p-6 md:p-8 flex flex-col gap-6 lg:flex-row lg:items-center">
                   <div className="relative w-full lg:w-1/2">
                     <div className="aspect-[4/3] rounded-2xl overflow-hidden shadow-lg shadow-slate-300/40">
-                      <img src={pickImage(topPref.prefectureId)} alt={`${topPref.name} のイメージ`} className="h-full w-full object-cover" />
+                      <img src={pickImage(topPref.prefectureId, topPref.imageUrl)} alt={`${topPref.name} のイメージ`} className="h-full w-full object-cover" />
                     </div>
                     <div className="absolute top-3 left-3 inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-800 shadow-sm">
                       <span className="h-9 w-9 rounded-full bg-slate-100 text-slate-800 flex items-center justify-center text-sm font-bold">#1</span>
@@ -201,11 +202,11 @@ export function Leaderboard() {
                     if (el) tileRefs.current.set(pref.prefectureId, el);
                     else tileRefs.current.delete(pref.prefectureId);
                   }}
-                  className="relative overflow-hidden rounded-3xl bg-white shadow-[0_18px_60px_rgba(0,0,0,0.08)] transition duration-500 hover:-translate-y-1 hover:shadow-[0_24px_90px_rgba(0,0,0,0.1)] will-change-transform"
+                  className="relative overflow-hidden rounded-2xl bg-white shadow-[0_12px_40px_rgba(0,0,0,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_50px_rgba(0,0,0,0.12)]"
                 >
                   <div className="relative h-full flex flex-col">
-                    <div className="relative h-52 w-full overflow-hidden bg-slate-50">
-                      <img src={pickImage(pref.prefectureId)} alt={`${pref.name} のイメージ`} className="h-full w-full object-cover" />
+                    <div className="relative h-44 w-full overflow-hidden bg-slate-50">
+                      <img src={pickImage(pref.prefectureId, pref.imageUrl)} alt={`${pref.name} のイメージ`} className="h-full w-full object-cover" />
                       <div className="absolute top-3 left-3 inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm">
                         <span className="h-8 w-8 rounded-full bg-slate-100 text-slate-800 flex items-center justify-center text-sm font-bold">
                           #{idx + 2}
