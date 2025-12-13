@@ -15,22 +15,18 @@
 git clone https://github.com/Riti0208/tech-world-hackathon-healthcare.git
 cd tech-world-hackathon-healthcare
 
-# コンテナビルド & 起動
+# コンテナビルド & 起動（初回は自動的にマイグレーション実行）
 docker-compose up -d --build
-
-# バックエンドが起動するまで待つ（10秒程度）
-sleep 10
-
-# データベースマイグレーション
-docker-compose exec backend npx prisma migrate dev --name init
-
-# バックエンド再起動
-docker-compose restart backend
 
 # アクセス
 # Frontend: http://localhost:5173
 # Backend:  http://localhost:3000/health
 ```
+
+初回起動時は、バックエンドが自動的に以下を実行します：
+- Prisma Client生成
+- データベースマイグレーション
+- アプリケーション起動
 
 ## 開発コマンド
 
@@ -50,23 +46,10 @@ docker-compose exec backend npx prisma studio
 ### バックエンドが起動しない場合
 
 ```bash
+# バックエンドログを確認
+docker-compose logs backend -f
+
 # コンテナを完全削除して再ビルド
 docker-compose down -v
 docker-compose up -d --build
-
-# バックエンドログを確認
-docker-compose logs backend
-
-# マイグレーション実行後、再起動
-docker-compose exec backend npx prisma migrate dev --name init
-docker-compose restart backend
-```
-
-### エラー: `PrismaClient does not provide an export`
-
-バックエンドコンテナ内でPrisma Clientを生成してください：
-
-```bash
-docker-compose exec backend npx prisma generate
-docker-compose restart backend
 ```

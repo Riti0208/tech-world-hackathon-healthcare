@@ -8,7 +8,8 @@ RUN npm install
 
 COPY . .
 
-# Generate Prisma Client at runtime instead of build time
+RUN chmod +x entrypoint.sh
+
 EXPOSE 3000
 
-CMD ["sh", "-c", "npx prisma generate && npm run dev"]
+ENTRYPOINT ["./entrypoint.sh"]
