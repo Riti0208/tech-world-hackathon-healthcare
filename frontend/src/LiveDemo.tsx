@@ -43,7 +43,7 @@ export function LiveDemo() {
   const [data, setData] = useState<LivePref[]>([]);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const intervalRef = useRef<number | null>(null);
-  const tileRefs = useRef(new Map<number, HTMLDivElement>());
+  const tileRefs = useRef(new Map<number, HTMLElement>());
   const positions = useRef(new Map<number, DOMRect>());
   const [loading, setLoading] = useState(true);
 
