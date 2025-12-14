@@ -182,6 +182,7 @@ export function Leaderboard() {
                       <Trophy className="h-4 w-4 text-slate-700" />
                       Winner
                     </div>
+                    <p className="text-sm text-slate-600">キャラクター: {topPref.characterName}</p>
                     <div className="space-y-1">
                       <p className="text-sm text-slate-600">現在の平均歩数</p>
                       <p className="text-5xl font-bold tracking-tight drop-shadow-sm text-slate-900">
@@ -238,6 +239,7 @@ export function Leaderboard() {
                             {numberFormatter.format(pref.averageSteps)} <span className="text-sm text-slate-500">歩</span>
                           </p>
                           <p className="text-[11px] text-slate-600 mt-1">あと {numberFormatter.format(gapToTop)} 歩で1位</p>
+                          <p className="text-[11px] text-slate-600 mt-1">キャラ: {pref.characterName}</p>
                         </div>
                         <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full border text-[11px] font-semibold ${badge.color}`}>
                           {badge.label}

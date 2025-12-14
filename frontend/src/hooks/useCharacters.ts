@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { prefectureNameById } from '../prefectures';
+import { prefectureCharacterNameById, prefectureNameById } from '../prefectures';
 
 export interface Character {
   prefectureId: number;
@@ -10,6 +10,7 @@ export interface Character {
 
 export interface RankedPrefecture extends Character {
   name: string;
+  characterName: string;
 }
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
@@ -45,6 +46,7 @@ export function useCharacters(options: Options = {}) {
         .map((item) => ({
           ...item,
           name: prefectureNameById[item.prefectureId] ?? `県${item.prefectureId}`,
+          characterName: prefectureCharacterNameById[item.prefectureId] ?? 'キャラ未設定',
         }))
         .sort((a, b) => b.averageSteps - a.averageSteps);
       setData(enriched);
