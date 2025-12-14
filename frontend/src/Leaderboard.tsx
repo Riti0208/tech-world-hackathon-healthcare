@@ -1,10 +1,7 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Clock3, RefreshCw, Sparkles, Trophy } from 'lucide-react';
 import { useCharacters } from './hooks/useCharacters';
 import mapSvg from './assets/map-full.svg?raw';
-import prefIcon1 from './assets/test1.png';
-import prefIcon2 from './assets/test2.png';
-import prefIcon3 from './assets/test3.png';
 
 const numberFormatter = new Intl.NumberFormat('ja-JP');
 
@@ -47,17 +44,7 @@ export function Leaderboard() {
   const mapRef = useRef<HTMLDivElement | null>(null);
   const mapFetched = useRef(false);
   const mapInjected = useRef(false);
-
-  const prefImages = useMemo(() => [prefIcon1, prefIcon2, prefIcon3], []);
-  const fallbackImageMap = useRef(new Map<number, string>());
-  const pickImage = (prefectureId: number, imageUrl?: string) => {
-    if (imageUrl) return imageUrl;
-    const cached = fallbackImageMap.current.get(prefectureId);
-    if (cached) return cached;
-    const choice = prefImages[Math.floor(Math.random() * prefImages.length)];
-    fallbackImageMap.current.set(prefectureId, choice);
-    return choice;
-  };
+  const pickImage = (_prefectureId: number, imageUrl?: string) => imageUrl ?? '';
 
   // FLIP animation for rank tiles
   useLayoutEffect(() => {
@@ -166,11 +153,15 @@ export function Leaderboard() {
                 <div className="relative p-6 md:p-8 flex flex-col gap-6 lg:flex-row lg:items-center">
                   <div className="relative w-full lg:w-1/2">
                     <div className="aspect-square max-h-[380px] rounded-2xl overflow-hidden border border-slate-200 bg-white shadow-lg shadow-slate-300/40">
-                      <img
-                        src={pickImage(topPref.prefectureId, topPref.imageUrl)}
-                        alt={`${topPref.name} のイメージ`}
-                        className="h-full w-full object-contain p-4"
-                      />
+                      {pickImage(topPref.prefectureId, topPref.imageUrl) ? (
+                        <img
+                          src={pickImage(topPref.prefectureId, topPref.imageUrl)}
+                          alt={`${topPref.name} のイメージ`}
+                          className="h-full w-full object-contain p-4"
+                        />
+                      ) : (
+                        <div className="h-full w-full flex items-center justify-center text-sm text-slate-500">画像なし</div>
+                      )}
                     </div>
                     <div className="absolute top-3 left-3 inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-800 shadow-sm">
                       <span className="h-9 w-9 rounded-full bg-slate-100 text-slate-800 flex items-center justify-center text-sm font-bold">#1</span>
@@ -219,12 +210,16 @@ export function Leaderboard() {
                   className="relative overflow-hidden rounded-2xl bg-white shadow-[0_12px_40px_rgba(0,0,0,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_50px_rgba(0,0,0,0.12)]"
                 >
                   <div className="relative h-full flex flex-col">
-                    <div className="relative aspect-square w-full overflow-hidden bg-white border border-slate-200">
-                      <img
-                        src={pickImage(pref.prefectureId, pref.imageUrl)}
-                        alt={`${pref.name} のイメージ`}
-                        className="h-full w-full object-contain p-3"
-                      />
+                  <div className="relative aspect-square w-full overflow-hidden bg-white border border-slate-200">
+                      {pickImage(pref.prefectureId, pref.imageUrl) ? (
+                        <img
+                          src={pickImage(pref.prefectureId, pref.imageUrl)}
+                          alt={`${pref.name} のイメージ`}
+                          className="h-full w-full object-contain p-3"
+                        />
+                      ) : (
+                        <div className="h-full w-full flex items-center justify-center text-xs text-slate-500">画像なし</div>
+                      )}
                       <div className="absolute top-3 left-3 inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm">
                         <span className="h-8 w-8 rounded-full bg-slate-100 text-slate-800 flex items-center justify-center text-sm font-bold">
                           #{idx + 2}
@@ -323,8 +318,8 @@ export function Leaderboard() {
         <header className="rounded-3xl bg-white text-slate-900 shadow-[0_18px_60px_rgba(0,0,0,0.08)] overflow-hidden relative">
           <div className="relative px-6 py-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="flex items-start gap-4">
-              <div className="h-16 w-16 rounded-2xl overflow-hidden bg-slate-100 shadow-inner">
-                <img src={prefIcon1} alt="キャラクター" className="h-full w-full object-cover" />
+              <div className="h-16 w-16 rounded-2xl overflow-hidden bg-slate-100 shadow-inner flex items-center justify-center text-sm font-semibold text-slate-700">
+                LB
               </div>
               <div>
                 <p className="text-xs uppercase tracking-[0.35em] text-slate-500 font-semibold">Live Tiles</p>
